@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { login } from '../services/auth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -26,6 +26,12 @@ export default function Login() {
         <input type="email" placeholder="Email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="border p-2 w-full mb-2" autoComplete="current-password"/>
         <input type="password" placeholder="Mot de passe" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} className="border p-2 w-full mb-2" autoComplete="current-password"/>
         <button className="bg-green-500 text-white px-4 py-2 rounded w-full">Se connecter</button>
+         <p className="mt-4 text-center">
+          Pas encore de compte ?{' '}
+          <Link to="/register" className="text-blue-500 underline">
+            Inscrivez-vous
+          </Link>
+        </p>
       </form>
     </div>
   )
