@@ -15,7 +15,7 @@ export const createAdmin = (data) => api.post('/auth/admin', data)
 export const getMyProfile = () => api.get('/auth/me')
 
 // 🔹 Récupérer tous les utilisateurs (admin uniquement)
-export const getAllUsers = () => api.get('/auth', {})
+export const getAllUsers = () => api.get('/users')
 
 // 🔹 Supprimer un utilisateur (admin uniquement)
-export const deleteUser = (id) => api.delete(`/auth/${id}`)
+export const deleteUser = (id) => api.delete(`/users/${id}`)

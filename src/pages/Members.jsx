@@ -1,20 +1,35 @@
 import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
 import { createMember, createAdmin } from '../services/auth'
-import { UserPlus, Shield } from 'lucide-react'
+import { UserPlus, Shield, Loader2 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 export default function Members() {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'member' })
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      if (form.role === 'admin') await createAdmin(form)
-      else await createMember(form)
-      alert('Utilisateur ajouté avec succès ✅')
+  const addMemberMutation = useMutation({
+    mutationFn: (userData) => {
+      if (userData.role === 'admin' && user?.role === 'admin') {
+        return createAdmin(userData)
+      }
+      return createMember(userData)
+    },
+    onSuccess: () => {
+      toast.success('Utilisateur ajouté avec succès !')
+      queryClient.invalidateQueries({ queryKey: ['users'] })
       setForm({ name: '', email: '', password: '', role: 'member' })
-    } catch (err) {
-      alert(err.response?.data?.message || 'Erreur serveur ❌')
-    }
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Une erreur est survenue.')
+    },
+  })
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    addMemberMutation.mutate(form)
   }
 
   return (
@@ -66,26 +81,33 @@ export default function Members() {
         </div>
 
         {/* Role */}
-        <div className="relative">
-          <select
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-            className="w-full border-b-2 border-gray-300 focus:border-purple-500 outline-none py-2 appearance-none pr-8"
-          >
-            <option value="member">Membre</option>
-            <option value="admin">Admin</option>
-          </select>
-          <span className="absolute right-0 top-2 text-gray-400">
-            {form.role === 'admin' ? <Shield size={20} /> : <UserPlus size={20} />}
-          </span>
-        </div>
+        {user?.role === 'admin' && (
+          <div className="relative">
+            <select
+              value={form.role}
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
+              className="w-full border-b-2 border-gray-300 focus:border-purple-500 outline-none py-2 appearance-none pr-8"
+            >
+              <option value="member">Membre</option>
+              <option value="admin">Admin</option>
+            </select>
+            <span className="absolute right-0 top-2 text-gray-400">
+              {form.role === 'admin' ? <Shield size={20} /> : <UserPlus size={20} />}
+            </span>
+          </div>
+        )}
 
         {/* Submit */}
         <button
+          disabled={addMemberMutation.isPending}
           type="submit"
-          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500 text-white py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 transition-all"
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500 text-white py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <UserPlus size={20} /> Ajouter
+          {addMemberMutation.isPending ? (
+            <><Loader2 size={20} className="animate-spin" /> Ajout en cours...</>
+          ) : (
+            <><UserPlus size={20} /> Ajouter</>
+          )}
         </button>
       </form>
     </div>
